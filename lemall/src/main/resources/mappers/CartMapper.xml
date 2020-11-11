@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zzzl.lemall.mapper.CartMapper">
+  <resultMap id="BaseResultMap" type="com.zzzl.lemall.domain.Cart">
+    <id column="cart_id" jdbcType="INTEGER" property="cartId" />
+    <result column="user_id" jdbcType="INTEGER" property="userId" />
+    <result column="good_id" jdbcType="INTEGER" property="goodId" />
+    <result column="cart_join_time" jdbcType="TIMESTAMP" property="cartJoinTime" />
+  </resultMap>
+  <resultMap id="carts" type="com.zzzl.lemall.domain.Cart">
+    <id column="cart_id" jdbcType="INTEGER" property="cartId" />
+    <result column="user_id" jdbcType="INTEGER" property="userId" />
+    <result column="good_id" jdbcType="INTEGER" property="goodId" />
+    <result column="cart_join_time" jdbcType="TIMESTAMP" property="cartJoinTime" />
+    <association property="good" javaType="com.zzzl.lemall.domain.Good">
+      <id column="good_id" jdbcType="INTEGER" property="goodId" />
+      <result column="good_name" jdbcType="VARCHAR" property="goodName" />
+      <result column="good_current_price" jdbcType="DECIMAL" property="goodCurrentPrice" />
+      <result column="good_original_price" jdbcType="DECIMAL" property="goodOriginalPrice" />
+      <result column="good_describe" jdbcType="VARCHAR" property="goodDescribe" />
+      <result column="good_inventory" jdbcType="INTEGER" property="goodInventory" />
+      <result column="good_sale" jdbcType="INTEGER" property="goodSale" />
+      <result column="good_state" jdbcType="VARCHAR" property="goodState" />
+      <result column="good_up_date" jdbcType="TIMESTAMP" property="goodUpDate" />
+      <result column="category_id" jdbcType="INTEGER" property="categoryId" />
+      <association property="pictureLocation" javaType="com.zzzl.lemall.domain.GoodDetails">
+        <id column="good_details_id" jdbcType="INTEGER" property="goodDetailsId" />
+        <result column="good_details_igm" jdbcType="VARCHAR" property="goodDetailsIgm" />
+        <result column="good_id" jdbcType="INTEGER" property="goodId" />
+      </association>
+    </association>
+    <collection property="sizes" ofType="com.zzzl.lemall.domain.Sizes">
+      <id column="size_id" javaType="INTEGER" property="sizeId"></id>
+      <result column="prop_id" javaType="INTEGER" property="propId"></result>
+      <result column="val_id" javaType="INTEGER" property="valId"></result>
+      <result column="cart_id" property="cartId"></result>
+      <result column="orderitem_id" property="orderitemId"></result>
+      <association property="property" javaType="com.zzzl.lemall.domain.Property">
+        <result column="prop_name" property="propName"></result>
+      </association>
+      <association property="value" javaType="com.zzzl.lemall.domain.Valuess">
+        <result column="val_content" property="valContent"></result>
+      </association>
+    </collection>
+  </resultMap>
+<!--  根据cartid查找购物车-->
+  <select id="selectCartByPrimaryKey" resultMap="BaseResultMap">
+    select * from cart where cart_id=#{cartId}
+  </select>
+  <!--根据id查找购物车-->
+  <select id="selectCartsByUserId" resultMap="carts">
+    select c.cart_id,
+           g.good_id,
+           g.good_name,
+           g.good_current_price,
+           g.good_original_price,
+           gd.good_details_igm,
+           s.size_id,
+           p.prop_name,
+           v.val_content
+    from   cart c
+    join   good g
+    on c.good_id=g.good_id
+    join sizes s
+    on c.cart_id=s.cart_id
+    join property p
+    on p.prop_id =s.prop_id
+    join valuess v
+    on v.val_id=s.val_id
+    join good_details gd
+    on g.good_id=gd.good_id
+    where
+    c.user_id =#{userid}
+
+  </select>
+  <select id="selectCartCount" resultType="_int">
+    select count(*) from cart where user_id=#{userid}
+  </select>
+  <delete id="deleteCartByCartId">
+    delete from cart where cart_id=#{cartId};
+  </delete>
+  <delete id="batchDeleteCart">
+    delete from cart
+           where cart_id
+           in
+           <foreach collection="array" open="(" close=")" separator="," item="cartId">
+             #{cartId}
+           </foreach>
+  </delete>
+  <select id="selectCartByCartIds" resultMap="BaseResultMap" >
+    select user_id,good_id from cart
+    <where>
+        cart_id in
+      <foreach collection="array" separator="," open="(" close=")" item="cartId">
+        #{cartId}
+      </foreach>
+    </where>
+  </select>
+  <insert id="insertOneCart" parameterType="Cart" useGeneratedKeys="true" keyColumn="cart_id" keyProperty="cartId">
+    insert into cart (cart_id,user_id,good_id,cart_join_time) values
+    (null,#{userId},#{goodId},#{cartJoinTime});
+  </insert>
+</mapper>

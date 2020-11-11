@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zzzl.lemall.mapper.SizesMapper">
+    <resultMap id="sizeMapper" type="com.zzzl.lemall.domain.Sizes">
+        <id column="size_id" javaType="INTEGER" property="sizeId"></id>
+        <result column="prop_id" javaType="INTEGER" property="propId"></result>
+        <result column="val_id" javaType="INTEGER" property="valId"></result>
+        <result column="cart_id" property="cartId"></result>
+        <result column="orderitem_id" property="orderitemId"></result>
+    </resultMap>
+    
+    <delete id="deleteSizesByCartId">
+        delete from sizes where cart_id=#{cartId};
+    </delete>
+    <delete id="batchDeleteSizesByCartId">
+        delete from sizes
+               where cart_id
+               in
+               <foreach collection="array" item="cartId" separator="," open="(" close=")">
+                   #{cartId}
+               </foreach>
+    </delete>
+    <update id="updateSizes" parameterType="Sizes">
+        update sizes
+        <set>
+            <if test="sizeId!=null">
+                size_id=#{sizeId},
+            </if>
+            <if test="propId!=null">
+                prop_id=#{propId},
+            </if>
+            <if test="valId!=null">
+                val_id=#{valId},
+            </if>
+            <if test="cartId!=null">
+                cart_id=#{cartId},
+            </if>
+            <if test="orderitemId!=null">
+                orderitem_id=#{orderitemId},
+            </if>
+        </set>
+            <where>
+                size_id=#{sizeId}
+            </where>
+    </update>
+    <insert id="batchInsertSizes" parameterType="Sizes" useGeneratedKeys="true" keyProperty="sizeId" keyColumn="size_id">
+        insert into sizes  (size_id,prop_id,val_id,cart_id,orderitem_id) values
+        <foreach collection="list" separator="," item="sizes">
+            (null,#{sizes.propId},#{sizes.valId},#{sizes.cartId},#{sizes.orderitemId})
+        </foreach>
+    </insert>
+</mapper>
